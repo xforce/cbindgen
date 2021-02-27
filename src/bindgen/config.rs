@@ -573,6 +573,9 @@ pub struct EnumConfig {
     /// Whether to generate empty, private default-constructors for tagged
     /// enums.
     pub private_default_tagged_enum_constructor: bool,
+
+    pub variant_prefix: Option<String>,
+    pub variant_postfix: Option<String>,
 }
 
 impl Default for EnumConfig {
@@ -592,6 +595,8 @@ impl Default for EnumConfig {
             derive_ostream: false,
             enum_class: true,
             private_default_tagged_enum_constructor: false,
+            variant_prefix: None,
+            variant_postfix: None,
         }
     }
 }
@@ -659,6 +664,20 @@ impl EnumConfig {
             return x;
         }
         self.private_default_tagged_enum_constructor
+    }
+
+    pub(crate) fn variant_prefix(&self, annotations: &AnnotationSet) -> Option<String> {
+        if let Some(x) = annotations.atom("variant-prefix") {
+            return x;
+        }
+        self.variant_prefix.clone()
+    }
+
+    pub(crate) fn variant_postfix(&self, annotations: &AnnotationSet) -> Option<String> {
+        if let Some(x) = annotations.atom("variant-postfix") {
+            return x;
+        }
+        self.variant_postfix.clone()
     }
 }
 

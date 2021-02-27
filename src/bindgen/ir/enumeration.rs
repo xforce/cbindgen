@@ -150,7 +150,21 @@ impl EnumVariant {
         let body = match variant.fields {
             syn::Fields::Unit => VariantBody::Empty(annotations),
             syn::Fields::Named(ref fields) => {
-                let path = Path::new(format!("{}_Body", variant.ident));
+                let prefix = config.enumeration.variant_prefix(&enum_annotations);
+                let postfix = config.enumeration.variant_postfix(&enum_annotations);
+
+                let path = Path::new(format!(
+                    "{}{}{}",
+                    match prefix {
+                        Some(prefix) => prefix,
+                        None => "".to_owned(),
+                    },
+                    variant.ident,
+                    match postfix {
+                        Some(postfix) => postfix,
+                        None => "_Body".to_owned(),
+                    }
+                ));
                 let name = RenameRule::SnakeCase
                     .apply(&variant.ident.to_string(), IdentifierType::StructMember)
                     .into_owned();
@@ -173,7 +187,21 @@ impl EnumVariant {
                 }
             }
             syn::Fields::Unnamed(ref fields) => {
-                let path = Path::new(format!("{}_Body", variant.ident));
+                let prefix = config.enumeration.variant_prefix(&enum_annotations);
+                let postfix = config.enumeration.variant_postfix(&enum_annotations);
+
+                let path = Path::new(format!(
+                    "{}{}{}",
+                    match prefix {
+                        Some(prefix) => prefix,
+                        None => "".to_owned(),
+                    },
+                    variant.ident,
+                    match postfix {
+                        Some(postfix) => postfix,
+                        None => "_Body".to_owned(),
+                    }
+                ));
                 let name = RenameRule::SnakeCase
                     .apply(&variant.ident.to_string(), IdentifierType::StructMember)
                     .into_owned();
@@ -501,7 +529,8 @@ impl Item for Enum {
 
         if config.language != Language::Cxx && self.tag.is_some() {
             // it makes sense to always prefix Tag with type name in C
-            let new_tag = format!("{}_Tag", self.export_name);
+            let mut new_tag = format!("{}_Tag", self.export_name);
+            config.export.rename(&mut new_tag);
             if self.repr.style == ReprStyle::Rust {
                 for variant in &mut self.variants {
                     if let VariantBody::Body { ref mut body, .. } = variant.body {
